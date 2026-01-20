@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vote</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo"><a href="/">Warta Arena</a></div>
+            <nav class="nav-links">
+                <a href="/tournaments">Tournaments</a>
+                <a href="/vote" style="color: var(--primary);">Vote</a>
+                <% if(user) { %>
+                    <a href="/tournaments/create">Create</a>
+                    <a href="/profile">Profile</a>
+                    <a href="/auth/logout" onclick="return confirm('Are you sure you want to log out?')">Logout</a>
+                <% } else { %>
+                    <a href="/auth/login" class="btn btn-primary">Login</a>
+                <% } %>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="card poll-container">
+            <h1 style="margin-bottom: 0.2rem; font-size: 1.8rem;">Doppelgänger Alert! 👯‍♂️</h1>
+            <p style="color: var(--secondary); font-size: 1rem;">Community Poll: Do they look alike?</p>
+
+            <div class="poll-comparison">
+                <div class="poll-card">
+                    <img src="https://cdn.theorg.com/f6f5fa2b-c91d-4a52-8f94-f3ab4f135ac7_medium.jpg" alt="Maciej Piernik" class="poll-img">
+                    <div class="poll-name">Maciej Piernik</div>
+                </div>
+
+                <div class="poll-vs">VS</div>
+
+                <div class="poll-card">
+                    <img src="https://i.pinimg.com/736x/0e/d6/c2/0ed6c298d658f80cad8eb5fafc7e56a4.jpg" alt="Benedict Cumberbatch" class="poll-img">
+                    <div class="poll-name">Benedict Cumberbatch</div>
+                </div>
+            </div>
+
+            <h2 style="margin-top: 1.5rem; font-size: 1.3rem;">How much do they resemble each other?</h2>
+
+            <% if (!voted) { %>
+                <form action="/vote" method="POST" class="poll-actions">
+                    <button type="submit" name="choice" value="yes" class="btn-vote btn-yes">Absolutely!</button>
+                    <button type="submit" name="choice" value="no" class="btn-vote btn-no">Nah, no way</button>
+                </form>
+            <% } else { %>
+                <div class="result-container" style="margin-top: 1.5rem;">
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between;"><strong>Absolutely!</strong><span><%= yesPercent %>% (<%= votes.yes %> votes)</span></div>
+                        <div class="result-bar-bg"><div class="result-bar-fill" style="--bar-width: <%= yesPercent %>%; background-color: #10b981;"></div></div>
+                    </div>
+                    <div>
+                        <div style="display: flex; justify-content: space-between;"><strong>Not really</strong><span><%= noPercent %>% (<%= votes.no %> votes)</span></div>
+                        <div class="result-bar-bg"><div class="result-bar-fill" style="--bar-width: <%= noPercent %>%; background-color: #ef4444;"></div></div>
+                    </div>
+                    <div style="text-align: center; margin-top: 1.5rem;">
+                        <a href="/vote" class="btn btn-secondary">Vote Again</a>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-info">
+                <h3>Contact Us</h3>
+                <p>Poznan, Warta Campus, Politechnika</p>
+                <p>Phone: +48 123 456 789</p>
+                <p>Email: contact@wartaarena.pl</p>
+            </div>
+            <div class="footer-newsletter">
+                <h3>Subscribe to Newsletter</h3>
+                <form class="newsletter-form">
+                    <input type="email" placeholder="Enter your email" required>
+                    <button type="button">Subscribe</button>
+                </form>
+            </div>
+        </div>
+    </footer>
+    <script>
+        document.querySelector('.newsletter-form button').addEventListener('click', (e) => {
+            e.preventDefault();
+            const email = document.querySelector('.newsletter-form input').value;
+            if(email.includes('@') && email.includes('.')) {
+                alert('Thanks for subscribing! 📩');
+                document.querySelector('.newsletter-form input').value = '';
+            } else { alert('Please enter a valid email address.'); }
+        });
+    </script>
+</body>
+</html>

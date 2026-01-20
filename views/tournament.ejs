@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= tournament.name %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo"><a href="/">Warta Arena</a></div>
+            <nav class="nav-links">
+                <a href="/tournaments">Tournaments</a>
+                <a href="/vote">Vote</a>
+                <% if(user) { %>
+                    <a href="/tournaments/create">Create</a>
+                    <a href="/profile">Profile</a>
+                    <a href="/auth/logout" onclick="return confirm('Are you sure you want to log out?')">Logout</a>
+                <% } else { %>
+                    <a href="/auth/login" class="btn btn-primary">Login</a>
+                <% } %>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <div class="card card-wide">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid var(--border); padding-bottom:1.5rem; margin-bottom:2rem;">
+                <div>
+                    <h1 style="margin:0; color:var(--primary);"><%= tournament.name %></h1>
+                    <span class="badge badge-open" style="margin-top:0.5rem; display:inline-block;"><%= tournament.discipline %></span>
+                </div>
+                <div style="text-align:right;">
+                    <p style="margin:0;"><strong>Deadline:</strong> <%= new Date(tournament.deadline).toLocaleDateString() %></p>
+                    <p style="margin:0;"><strong>Slots:</strong> <%= participantsCount %> / <%= tournament.maxParticipants %></p>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:2rem;">
+                <div>
+                    <p><strong>Organizer:</strong> <%= tournament.Organizer.firstName %></p>
+                    <p><strong>Start:</strong> <%= new Date(tournament.startTime).toLocaleString() %></p>
+                    <p><strong>Location:</strong> <%= tournament.location %></p>
+                    <div style="margin-top:1.5rem;">
+                        <strong style="display:block; margin-bottom:0.5rem;">Sponsors:</strong>
+                        <% JSON.parse(tournament.sponsors).forEach(s => { %>
+                            <img src="<%= s %>" height="40" style="margin-right:1rem; opacity:0.8;">
+                        <% }) %>
+                    </div>
+                </div>
+                <div>
+                    <iframe style="width:100%; height:300px; border:0; border-radius:12px;" src="https://maps.google.com/maps?q=<%= encodeURIComponent(tournament.location) %>&output=embed"></iframe>
+                </div>
+            </div>
+
+            <% if(user && tournament.organizerId === user) { %>
+                <div style="background:#f3f4f6; padding:1.5rem; border-radius:12px; margin-top:2rem; display:flex; gap:1rem; align-items:center;">
+                    <strong style="color:var(--text-muted);">Admin:</strong>
+                    <a href="/tournaments/<%= tournament.id %>/edit" class="btn btn-secondary">Edit</a>
+                    <form action="/tournaments/<%= tournament.id %>/delete" method="POST" onsubmit="return confirm('Delete?')" style="margin:0;">
+                        <button class="btn btn-danger">Delete</button>
+                    </form>
+                    <% if(new Date(tournament.deadline) < new Date() && matches.length === 0) { %>
+                        <form action="/tournaments/<%= tournament.id %>/generate" method="POST" style="margin:0;">
+                            <button class="btn btn-primary">Generate Ladder</button>
+                        </form>
+                    <% } %>
+                </div>
+            <% } %>
+
+            <h3 style="margin-top:3rem; padding-bottom:0.5rem; border-bottom:1px solid var(--border);">Tournament Ladder</h3>
+            <% if(matches.length > 0) { %>
+                <div class="match-grid">
+                    <% matches.forEach(m => { %>
+                        <div class="match-card">
+                            <div class="player-box">
+                                <a href="/users/<%= m.player1Id %>" class="player-link <%= m.winnerId === m.player1Id ? 'winner' : '' %>">
+                                    <%= m.Player1.firstName %> <%= m.Player1.lastName %>
+                                </a>
+                                <% if(user === m.player1Id && !m.winnerId) { %>
+                                    <form action="/matches/report" method="POST"><input type="hidden" name="matchId" value="<%= m.id %>"><button name="winnerId" value="<%= m.player1Id %>" class="btn btn-primary" style="font-size:0.8rem; padding:0.3rem 0.8rem; margin-top:5px;">I Won</button></form>
+                                <% } %>
+                            </div>
+                            <div class="vs">VS</div>
+                            <div class="player-box">
+                                <a href="/users/<%= m.player2Id %>" class="player-link <%= m.winnerId === m.player2Id ? 'winner' : '' %>">
+                                    <%= m.Player2.firstName %> <%= m.Player2.lastName %>
+                                </a>
+                                <% if(user === m.player2Id && !m.winnerId) { %>
+                                    <form action="/matches/report" method="POST"><input type="hidden" name="matchId" value="<%= m.id %>"><button name="winnerId" value="<%= m.player2Id %>" class="btn btn-primary" style="font-size:0.8rem; padding:0.3rem 0.8rem; margin-top:5px;">I Won</button></form>
+                                <% } %>
+                            </div>
+                            <% if(m.player1Report && m.player2Report && !m.winnerId) { %> 
+                                <div style="color:var(--danger); font-size:0.8rem; position:absolute; bottom:5px; width:100%; text-align:center; font-weight:600;">Conflict! Re-submit.</div> 
+                            <% } %>
+                        </div>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <div class="alert alert-info" style="margin-top:1rem;">Ladder will be generated after deadline.</div>
+            <% } %>
+
+            <% if(new Date(tournament.deadline) > new Date() && participantsCount < tournament.maxParticipants) { %>
+                <div style="margin-top:3rem; border-top:1px solid var(--border); padding-top:2rem;">
+                    <h3>Register to Compete</h3>
+                    <form action="/tournaments/<%= tournament.id %>/apply" method="POST" style="max-width:500px;">
+                        <div class="form-group">
+                            <label class="form-label">License Number</label>
+                            <input type="text" name="licenseNumber" required class="form-control" placeholder="Unique License ID">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Current Ranking</label>
+                            <input type="number" name="ranking" required class="form-control" placeholder="Unique Ranking Score">
+                        </div>
+                        <button class="btn btn-primary">Join Tournament</button>
+                    </form>
+                </div>
+            <% } else if(new Date(tournament.deadline) < new Date()) { %>
+                <div class="alert alert-error" style="margin-top:2rem;">Registration Closed</div>
+            <% } else { %>
+                <div class="alert alert-error" style="margin-top:2rem;">Tournament Full</div>
+            <% } %>
+        </div>
+    </main>
+    <footer>
+        <div class="footer-content">
+            <div class="footer-info">
+                <h3>Contact Us</h3>
+                <p>Poznan, Warta Campus, Politechnika</p>
+                <p>Phone: +48 123 456 789</p>
+                <p>Email: contact@wartaarena.pl</p>
+            </div>
+            <div class="footer-newsletter">
+                <h3>Subscribe to Newsletter</h3>
+                <form class="newsletter-form">
+                    <input type="email" placeholder="Enter your email" required>
+                    <button type="button">Subscribe</button>
+                </form>
+            </div>
+        </div>
+    </footer>
+    <script>
+        document.querySelector('.newsletter-form button').addEventListener('click', (e) => {
+            e.preventDefault();
+            const email = document.querySelector('.newsletter-form input').value;
+            if(email.includes('@') && email.includes('.')) {
+                alert('Thanks for subscribing! 📩');
+                document.querySelector('.newsletter-form input').value = '';
+            } else { alert('Please enter a valid email address.'); }
+        });
+    </script>
+</body>
+</html>

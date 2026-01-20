@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head><title>Success</title><link rel="stylesheet" href="/css/style.css"></head>
+<body>
+    <header>
+        <div class="header-content"><div class="logo"><a href="/">Warta Arena</a></div>
+        <nav class="nav-links"><a href="/tournaments">Tournaments</a><a href="/vote">Vote</a><a href="/auth/login" class="btn btn-primary">Login</a></nav></div>
+    </header>
+    <main class="container">
+        <div class="card" style="text-align:center; max-width:600px; margin:4rem auto;">
+            <h1 style="color:var(--success);">Registration Successful! 🎉</h1>
+            <p style="margin-bottom:2rem; font-size:1.1rem;">Please check your email to confirm your account.</p>
+            <a href="/auth/confirm/<%= token %>" class="btn btn-primary">Simulate Email Confirmation Link</a>
+        </div>
+    </main>
+    <footer>
+        <div class="footer-content">
+            <div class="footer-info"><h3>Contact Us</h3><p>Poznan, Warta Campus, Politechnika</p><p>Phone: +48 123 456 789</p><p>Email: contact@wartaarena.pl</p></div>
+            <div class="footer-newsletter"><h3>Subscribe to Newsletter</h3><form class="newsletter-form"><input type="email" placeholder="Enter your email" required><button type="button">Subscribe</button></form></div>
+        </div>
+    </footer>
+    <script>
+        document.querySelector('.newsletter-form button').addEventListener('click', (e) => {
+            e.preventDefault();
+            const email = document.querySelector('.newsletter-form input').value;
+            if(email.includes('@') && email.includes('.')) {
+                alert('Thanks for subscribing! 📩');
+                document.querySelector('.newsletter-form input').value = '';
+            } else { alert('Please enter a valid email address.'); }
+        });
+    </script>
+</body>
+</html>

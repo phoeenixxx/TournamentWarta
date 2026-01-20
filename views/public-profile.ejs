@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Profile</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo"><a href="/">Warta Arena</a></div>
+            <nav class="nav-links">
+                <a href="/tournaments">Tournaments</a>
+                <a href="/vote">Vote</a>
+                <% if(user) { %>
+                    <a href="/tournaments/create">Create</a>
+                    <a href="/profile">Profile</a>
+                    <a href="/auth/logout" onclick="return confirm('Are you sure you want to log out?')">Logout</a>
+                <% } else { %>
+                    <a href="/auth/login" class="btn btn-primary">Login</a>
+                <% } %>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <div class="card" style="max-width:800px; margin:auto;">
+            <h1><%= userProfile.firstName %> <%= userProfile.lastName %></h1>
+            <p style="color:var(--text-muted); margin-bottom:2rem;">Player Profile</p>
+            
+            <h3>Active Participations</h3>
+            <% if(userProfile.Participants && userProfile.Participants.length > 0) { %>
+                <ul>
+                    <% userProfile.Participants.forEach(p => { %>
+                        <% if(p.Tournament) { %>
+                            <li style="background:#f8fafc; padding:1rem; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:0.5rem; display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <a href="/tournaments/<%= p.Tournament.id %>" style="text-decoration:none; font-weight:700; color:var(--text-main); font-size:1.1rem;">
+                                        <%= p.Tournament.name %>
+                                    </a>
+                                    <span style="display:block; font-size:0.9rem; color:var(--text-muted);"><%= p.Tournament.discipline %></span>
+                                </div>
+                                <div style="text-align:right;">
+                                    <span class="badge badge-open" style="font-size:0.9rem;">Rank: <%= p.ranking %></span>
+                                </div>
+                            </li>
+                        <% } %>
+                    <% }) %>
+                </ul>
+            <% } else { %>
+                <p>This player is not participating in any active tournaments.</p>
+            <% } %>
+        </div>
+    </main>
+    <footer>
+        <div class="footer-content">
+            <div class="footer-info"><h3>Contact Us</h3><p>Poznan, Warta Campus, Politechnika</p><p>Phone: +48 123 456 789</p><p>Email: contact@wartaarena.pl</p></div>
+            <div class="footer-newsletter"><h3>Subscribe to Newsletter</h3><form class="newsletter-form"><input type="email" placeholder="Enter your email" required><button type="button">Subscribe</button></form></div>
+        </div>
+    </footer>
+</body>
+</html>

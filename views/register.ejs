@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head><title>Register</title><link rel="stylesheet" href="/css/style.css"></head>
+<body>
+    <header>
+        <div class="header-content"><div class="logo"><a href="/">Warta Arena</a></div>
+        <nav class="nav-links"><a href="/tournaments">Tournaments</a><a href="/vote">Vote</a><a href="/auth/login" class="btn btn-primary">Login</a></nav></div>
+    </header>
+    <main class="container">
+        <div class="card card-auth">
+            <h1 style="text-align:center">Register</h1>
+            <% if(locals.error) { %><div class="alert alert-error"><%= error %></div><% } %>
+            <form action="/auth/register" method="POST">
+                <div class="form-group"><label class="form-label">First Name</label><input type="text" name="firstName" required class="form-control"></div>
+                <div class="form-group"><label class="form-label">Last Name</label><input type="text" name="lastName" required class="form-control"></div>
+                <div class="form-group"><label class="form-label">Email</label><input type="email" name="email" required class="form-control"></div>
+                <div class="form-group"><label class="form-label">Password</label><input type="password" name="password" required class="form-control"></div>
+                <button class="btn btn-primary btn-block">Sign Up</button>
+            </form>
+        </div>
+    </main>
+    <footer>
+        <div class="footer-content">
+            <div class="footer-info"><h3>Contact Us</h3><p>Poznan, Warta Campus, Politechnika</p><p>Phone: +48 123 456 789</p><p>Email: contact@wartaarena.pl</p></div>
+            <div class="footer-newsletter"><h3>Subscribe to Newsletter</h3><form class="newsletter-form"><input type="email" placeholder="Enter your email" required><button type="button">Subscribe</button></form></div>
+        </div>
+    </footer>
+    <script>
+        document.querySelector('.newsletter-form button').addEventListener('click', (e) => {
+            e.preventDefault();
+            const email = document.querySelector('.newsletter-form input').value;
+            if(email.includes('@') && email.includes('.')) {
+                alert('Thanks for subscribing! 📩');
+                document.querySelector('.newsletter-form input').value = '';
+            } else { alert('Please enter a valid email address.'); }
+        });
+    </script>
+</body>
+</html>

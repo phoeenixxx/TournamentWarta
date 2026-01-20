@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Warta Arena</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo"><a href="/">Warta Arena</a></div>
+            <nav class="nav-links">
+                <a href="/tournaments">Tournaments</a>
+                <a href="/vote">Vote</a>
+                <% if(user) { %>
+                    <a href="/tournaments/create">Create</a>
+                    <a href="/profile">Profile</a>
+                    <a href="/auth/logout" onclick="return confirm('Are you sure you want to log out?')">Logout</a>
+                <% } else { %>
+                    <a href="/auth/login" class="btn btn-primary">Login</a>
+                <% } %>
+            </nav>
+        </div>
+    </header>
+    
+    <main class="container">
+        <div class="vote-banner">
+            <div>
+                <h2>Community Poll 👯‍♂️</h2>
+                <p>Choose your favourite and vote now!</p>
+            </div>
+            <a href="/vote" class="btn-banner">Go to Poll</a>
+        </div>
+
+        <% if(locals.successMsg) { %>
+            <div class="alert alert-success"><%= successMsg %></div>
+        <% } %>
+
+        <div class="toolbar">
+            <h2 style="margin:0;">All Tournaments</h2>
+            <form action="/tournaments" method="GET" class="search-form">
+                <input type="text" name="search" placeholder="Search..." value="<%= search %>" class="form-control" style="margin-bottom:0;">
+                <button class="btn btn-primary">Search</button>
+            </form>
+            <div class="sort-controls">
+                <span>Sort by:</span>
+                <a href="/tournaments?sort=date&search=<%= search %>" class="btn btn-secondary <%= !sort || sort === 'date' ? 'btn-active' : '' %>">Date</a>
+                <a href="/tournaments?sort=deadline&search=<%= search %>" class="btn btn-secondary <%= sort === 'deadline' ? 'btn-active' : '' %>">Deadline</a>
+            </div>
+        </div>
+
+        <% if(tournaments.length > 0) { %>
+            <div class="grid">
+                <% tournaments.forEach(t => { %>
+                    <div class="tournament-item">
+                        <div class="tournament-content">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+                                <h3 style="margin:0; font-size:1.1rem;"><%= t.name %></h3>
+                                <span class="badge <%= new Date(t.startTime) < new Date() ? 'badge-closed' : 'badge-open' %>">
+                                    <%= new Date(t.startTime) < new Date() ? 'Finished' : 'Open' %>
+                                </span>
+                            </div>
+                            <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:0.5rem;">
+                                <strong>Discipline:</strong> <%= t.discipline %>
+                            </p>
+                            <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:0.5rem;">
+                                <strong>Date:</strong> <%= new Date(t.startTime).toLocaleDateString() %>
+                            </p>
+                            <p style="color:var(--text-muted); font-size:0.9rem;">
+                                <strong>Deadline:</strong> <%= new Date(t.deadline).toLocaleDateString() %>
+                            </p>
+                        </div>
+                        <a href="/tournaments/<%= t.id %>" class="btn btn-secondary btn-block">View Details</a>
+                    </div>
+                <% }) %>
+            </div>
+            <div class="pagination">
+                <% for(let i=1; i<=pages; i++) { %>
+                    <a href="/tournaments?page=<%= i %>&search=<%= search %>&sort=<%= sort %>" class="page-link <%= currentPage===i?'active':'' %>"><%= i %></a>
+                <% } %>
+            </div>
+        <% } else { %>
+            <div class="no-results">
+                <h3>No tournaments found</h3>
+                <p>Try adjusting your search filters.</p>
+                <a href="/tournaments" class="btn btn-secondary">Clear Search</a>
+            </div>
+        <% } %>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-info">
+                <h3>Contact Us</h3>
+                <p>Poznan, Warta Campus, Politechnika</p>
+                <p>Phone: +48 123 456 789</p>
+                <p>Email: contact@wartaarena.pl</p>
+            </div>
+            <div class="footer-newsletter">
+                <h3>Subscribe to Newsletter</h3>
+                <form class="newsletter-form">
+                    <input type="email" placeholder="Enter your email" required>
+                    <button type="button">Subscribe</button>
+                </form>
+            </div>
+        </div>
+    </footer>
+    <script>
+        document.querySelector('.newsletter-form button').addEventListener('click', (e) => {
+            e.preventDefault();
+            const email = document.querySelector('.newsletter-form input').value;
+            if(email.includes('@') && email.includes('.')) {
+                alert('Thanks for subscribing! 📩');
+                document.querySelector('.newsletter-form input').value = '';
+            } else {
+                alert('Please enter a valid email address.');
+            }
+        });
+    </script>
+</body>
+</html>
