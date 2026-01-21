@@ -2,6 +2,8 @@
 
 **TournamentWarta** is a comprehensive web application designed to facilitate the organization, management, and visualization of sports tournaments. Built with Node.js and Express, the system handles the entire tournament lifecycle—from user registration and event creation to automatic bracket generation and match result reporting.
 
+Final project of Advanced Internet Appication. Poznan University Of Technology (PUT).
+
 ---
 
 ## 📋 Table of Contents
