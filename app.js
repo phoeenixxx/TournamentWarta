@@ -29,8 +29,8 @@ let pollVotes = { yes: 0, no: 0 };
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: '', // Personal email credentials should be filled here
-        pass: '' //Unique app password should be filled here
+        user: '',
+        pass: ''
     }
 });
 
@@ -55,7 +55,7 @@ app.post('/auth/register', async (req, res) => {
         const confirmationLink = `http://localhost:3001/auth/confirm/${token}`;
         
         await transporter.sendMail({
-            from: '"TOURNAMENT Warta Arena" ',
+            from: '"Warta Arena"',
             to: req.body.email,
             subject: "Confirm your account - Warta Arena",
             html: `<h3>Welcome to Warta Arena!</h3><p>Please confirm your account by clicking the link below:</p><a href="${confirmationLink}">Confirm Account</a><br><p>Link expires in 24 hours.</p>`
@@ -103,10 +103,10 @@ app.post('/auth/forgot-password', async (req, res) => {
     const resetLink = `http://localhost:3001/auth/reset-password/${user.resetToken}`;
     
     await transporter.sendMail({
-        from: '"TOURNAMENT Warta Arena"',
+        from: '"Warta Arena"',
         to: user.email,
         subject: "Password Reset - Warta Arena",
-        html: `<h3>Password Reset</h3><p>Click the link below to reset your password:</p><a href="${resetLink}">Reset Password</a><br><p>Link expires in 24 hour.</p>`
+        html: `<h3>Password Reset</h3><p>Click the link below to reset your password:</p><a href="${resetLink}">Reset Password</a><br><p>Link expires in 1 hour.</p>`
     });
 
     res.render('login', { msg: 'Reset link sent to your email.' });
@@ -155,9 +155,12 @@ app.post('/tournaments/create', async (req, res) => {
 app.get('/tournaments/:id', async (req, res) => {
     const tournament = await Tournament.findByPk(req.params.id, { include: [{ model: User, as: 'Organizer' }] });
     if(!tournament) return res.status(404).send('Not Found');
+    
     const participantsCount = await Participant.count({ where: { TournamentId: req.params.id } });
+    const participants = await Participant.findAll({ where: { TournamentId: req.params.id } });
     const matches = await Match.findAll({ where: { TournamentId: req.params.id }, include: [{ model: User, as: 'Player1' }, { model: User, as: 'Player2' }] });
-    res.render('tournament', { tournament, participantsCount, matches });
+    
+    res.render('tournament', { tournament, participantsCount, matches, participants });
 });
 
 app.post('/tournaments/:id/apply', async (req, res) => {
@@ -226,7 +229,15 @@ app.get('/users/:id', async (req, res) => {
             include: [{ model: Participant, include: [Tournament] }]
         });
         if(!userProfile) return res.status(404).send("User not found");
-        res.render('public-profile', { userProfile });
+
+        const wonMatches = await Match.findAll({ 
+            where: { winnerId: req.params.id },
+            attributes: ['TournamentId'] 
+        });
+
+        const wonTournamentIds = wonMatches.map(m => m.TournamentId);
+
+        res.render('public-profile', { userProfile, wonTournamentIds });
     } catch(err) { res.status(500).send(err.message); }
 });
 

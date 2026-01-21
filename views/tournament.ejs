@@ -73,22 +73,27 @@
                     <% matches.forEach(m => { %>
                         <div class="match-card">
                             <div class="player-box">
+                                <% const p1 = participants.find(p => p.UserId === m.player1Id); %>
                                 <a href="/users/<%= m.player1Id %>" class="player-link <%= m.winnerId === m.player1Id ? 'winner' : '' %>">
-                                    <%= m.Player1.firstName %> <%= m.Player1.lastName %>
+                                    ID: <%= m.player1Id %> <span style="font-weight:400; font-size:0.9rem; color:var(--text-muted);">(Rank: <%= p1 ? p1.ranking : '-' %>)</span>
                                 </a>
                                 <% if(user === m.player1Id && !m.winnerId) { %>
                                     <form action="/matches/report" method="POST"><input type="hidden" name="matchId" value="<%= m.id %>"><button name="winnerId" value="<%= m.player1Id %>" class="btn btn-primary" style="font-size:0.8rem; padding:0.3rem 0.8rem; margin-top:5px;">I Won</button></form>
                                 <% } %>
                             </div>
+
                             <div class="vs">VS</div>
+
                             <div class="player-box">
+                                <% const p2 = participants.find(p => p.UserId === m.player2Id); %>
                                 <a href="/users/<%= m.player2Id %>" class="player-link <%= m.winnerId === m.player2Id ? 'winner' : '' %>">
-                                    <%= m.Player2.firstName %> <%= m.Player2.lastName %>
+                                    ID: <%= m.player2Id %> <span style="font-weight:400; font-size:0.9rem; color:var(--text-muted);">(Rank: <%= p2 ? p2.ranking : '-' %>)</span>
                                 </a>
                                 <% if(user === m.player2Id && !m.winnerId) { %>
                                     <form action="/matches/report" method="POST"><input type="hidden" name="matchId" value="<%= m.id %>"><button name="winnerId" value="<%= m.player2Id %>" class="btn btn-primary" style="font-size:0.8rem; padding:0.3rem 0.8rem; margin-top:5px;">I Won</button></form>
                                 <% } %>
                             </div>
+                            
                             <% if(m.player1Report && m.player2Report && !m.winnerId) { %> 
                                 <div style="color:var(--danger); font-size:0.8rem; position:absolute; bottom:5px; width:100%; text-align:center; font-weight:600;">Conflict! Re-submit.</div> 
                             <% } %>

@@ -4,6 +4,20 @@
     <title>User Profile</title>
     <link rel="stylesheet" href="/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .winner-card {
+            background-color: #ecfdf5 !important;
+            border: 2px solid #10b981 !important;
+        }
+        .winner-badge {
+            background-color: #10b981;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -24,7 +38,7 @@
     </header>
     <main class="container">
         <div class="card" style="max-width:800px; margin:auto;">
-            <h1><%= userProfile.firstName %> <%= userProfile.lastName %></h1>
+            <h1>User ID: <%= userProfile.id %></h1>
             <p style="color:var(--text-muted); margin-bottom:2rem;">Player Profile</p>
             
             <h3>Active Participations</h3>
@@ -32,10 +46,13 @@
                 <ul>
                     <% userProfile.Participants.forEach(p => { %>
                         <% if(p.Tournament) { %>
-                            <li style="background:#f8fafc; padding:1rem; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:0.5rem; display:flex; justify-content:space-between; align-items:center;">
+                            <% const isWinner = wonTournamentIds.includes(p.Tournament.id); %>
+                            
+                            <li class="<%= isWinner ? 'winner-card' : '' %>" style="background:#f8fafc; padding:1rem; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:0.5rem; display:flex; justify-content:space-between; align-items:center;">
                                 <div>
-                                    <a href="/tournaments/<%= p.Tournament.id %>" style="text-decoration:none; font-weight:700; color:var(--text-main); font-size:1.1rem;">
+                                    <a href="/tournaments/<%= p.Tournament.id %>" class="player-link">
                                         <%= p.Tournament.name %>
+                                        <% if(isWinner) { %> <span class="winner-badge">WINNER</span> <% } %>
                                     </a>
                                     <span style="display:block; font-size:0.9rem; color:var(--text-muted);"><%= p.Tournament.discipline %></span>
                                 </div>
