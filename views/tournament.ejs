@@ -24,7 +24,34 @@
     </header>
     <main class="container">
         <div class="card card-wide">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid var(--border); padding-bottom:1.5rem; margin-bottom:2rem;">
+
+            <% if(msg === 'success') { %>
+                <div class="alert alert-success">✅ You have successfully joined the tournament!</div>
+            <% } else if(msg === 'ladder_generated') { %>
+                <div class="alert alert-success">🏆 Tournament Ladder has been generated successfully!</div>
+            <% } %>
+
+            <% if(error === 'registered') { %>
+                <div class="alert alert-info">⚠️ You are already registered for this tournament.</div>
+            <% } else if(error === 'full') { %>
+                <div class="alert alert-error">🚫 Registration failed: Tournament is full.</div>
+            <% } else if(error === 'license_taken') { %>
+                <div class="alert alert-error">❌ This License Number is already in use.</div>
+            <% } else if(error === 'ranking_taken') { %>
+                <div class="alert alert-error">❌ This Ranking position is already taken.</div>
+            <% } else if(error === 'organizer_restriction') { %>
+                <div class="alert alert-error">⛔ Organizers cannot compete in their own tournament.</div>
+            <% } else if(error === 'deadline_passed') { %>
+                <div class="alert alert-error">⏰ Registration Deadline has passed.</div>
+            <% } else if(error === 'not_enough_players') { %>
+                <div class="alert alert-error">⚠️ <strong>Cannot Start:</strong> Not enough players (Minimum 2 required).</div>
+            <% } else if(error === 'deadline_not_passed') { %>
+                <div class="alert alert-error">⏳ Cannot generate ladder before the deadline passes.</div>
+            <% } else if(error === 'unauthorized') { %>
+                <div class="alert alert-error">🚫 You do not have permission to perform this action.</div>
+            <% } %>
+
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid var(--border); padding-bottom:1.5rem; margin-bottom:2rem; margin-top:1rem;">
                 <div>
                     <h1 style="margin:0; color:var(--primary);"><%= tournament.name %></h1>
                     <span class="badge badge-open" style="margin-top:0.5rem; display:inline-block;"><%= tournament.discipline %></span>
@@ -104,8 +131,12 @@
                 <div class="alert alert-info" style="margin-top:1rem;">Ladder will be generated after deadline.</div>
             <% } %>
 
-            <% if(new Date(tournament.deadline) > new Date() && participantsCount < tournament.maxParticipants) { %>
-                <div style="margin-top:3rem; border-top:1px solid var(--border); padding-top:2rem;">
+            <div style="margin-top:3rem; border-top:1px solid var(--border); padding-top:2rem;">
+                <% const isDeadlinePassed = new Date(tournament.deadline) < new Date(); %>
+                <% const isFull = participantsCount >= tournament.maxParticipants; %>
+                <% const isOrganizer = (user === tournament.organizerId); %>
+
+                <% if (!isDeadlinePassed && !isFull && !isOrganizer) { %>
                     <h3>Register to Compete</h3>
                     <form action="/tournaments/<%= tournament.id %>/apply" method="POST" style="max-width:500px;">
                         <div class="form-group">
@@ -118,12 +149,20 @@
                         </div>
                         <button class="btn btn-primary">Join Tournament</button>
                     </form>
-                </div>
-            <% } else if(new Date(tournament.deadline) < new Date()) { %>
-                <div class="alert alert-error" style="margin-top:2rem;">Registration Closed</div>
-            <% } else { %>
-                <div class="alert alert-error" style="margin-top:2rem;">Tournament Full</div>
-            <% } %>
+                <% } else if (isOrganizer) { %>
+                    <div class="alert alert-info">
+                        You are the <strong>Organizer</strong> of this event, so you cannot participate as a player.
+                    </div>
+                <% } else if (isFull) { %>
+                    <div class="alert alert-error">
+                        <strong>Registration Closed:</strong> This tournament has reached its maximum capacity.
+                    </div>
+                <% } else if (isDeadlinePassed) { %>
+                    <div class="alert alert-error">
+                        <strong>Registration Closed:</strong> The application deadline has passed.
+                    </div>
+                <% } %>
+            </div>
         </div>
     </main>
     <footer>

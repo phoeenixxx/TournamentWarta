@@ -160,7 +160,14 @@ app.get('/tournaments/:id', async (req, res) => {
     const participants = await Participant.findAll({ where: { TournamentId: req.params.id } });
     const matches = await Match.findAll({ where: { TournamentId: req.params.id }, include: [{ model: User, as: 'Player1' }, { model: User, as: 'Player2' }] });
     
-    res.render('tournament', { tournament, participantsCount, matches, participants });
+    res.render('tournament', { 
+        tournament, 
+        participantsCount, 
+        matches, 
+        participants, 
+        error: req.query.error,
+        msg: req.query.msg
+    });
 });
 
 app.post('/tournaments/:id/apply', async (req, res) => {
@@ -168,29 +175,60 @@ app.post('/tournaments/:id/apply', async (req, res) => {
     const t = await sequelize.transaction();
     try {
         const tournament = await Tournament.findByPk(req.params.id, { transaction: t, lock: t.LOCK.UPDATE });
-        if(await Participant.findOne({ where: { TournamentId: tournament.id, UserId: req.session.userId }, transaction: t })) throw new Error('Already registered');
-        if(await Participant.count({ where: { TournamentId: tournament.id }, transaction: t }) >= tournament.maxParticipants) throw new Error('Full');
-        if(await Participant.findOne({ where: { licenseNumber: req.body.licenseNumber }, transaction: t })) throw new Error('License Taken');
-        if(await Participant.findOne({ where: { ranking: req.body.ranking }, transaction: t })) throw new Error('Ranking Taken');
+        
+        if(tournament.organizerId === req.session.userId) {
+            throw new Error('organizer_restriction');
+        }
+        if(new Date(tournament.deadline) < new Date()) {
+            throw new Error('deadline_passed');
+        }
+        if(await Participant.findOne({ where: { TournamentId: tournament.id, UserId: req.session.userId }, transaction: t })) {
+            throw new Error('registered');
+        }
+        if(await Participant.count({ where: { TournamentId: tournament.id }, transaction: t }) >= tournament.maxParticipants) {
+            throw new Error('full');
+        }
+        if(await Participant.findOne({ where: { licenseNumber: req.body.licenseNumber }, transaction: t })) {
+            throw new Error('license_taken');
+        }
+        if(await Participant.findOne({ where: { ranking: req.body.ranking }, transaction: t })) {
+            throw new Error('ranking_taken');
+        }
+
         await Participant.create({ TournamentId: tournament.id, UserId: req.session.userId, ...req.body }, { transaction: t });
         await t.commit();
-        res.redirect(`/tournaments/${req.params.id}`);
-    } catch(err) { await t.rollback(); res.status(400).send(err.message); }
+        res.redirect(`/tournaments/${req.params.id}?msg=success`);
+    } catch(err) { 
+        await t.rollback(); 
+        res.redirect(`/tournaments/${req.params.id}?error=${err.message}`); 
+    }
 });
 
 app.post('/tournaments/:id/generate', async (req, res) => {
     if(!req.session.userId) return res.redirect('/auth/login');
+    
     const tournament = await Tournament.findByPk(req.params.id);
-    if(tournament.organizerId !== req.session.userId) return res.send('Unauthorized');
-    if(new Date(tournament.deadline) > new Date()) return res.send('Deadline not passed');
+    
+    if(tournament.organizerId !== req.session.userId) {
+        return res.redirect(`/tournaments/${tournament.id}?error=unauthorized`);
+    }
+    if(new Date(tournament.deadline) > new Date()) {
+        return res.redirect(`/tournaments/${tournament.id}?error=deadline_not_passed`);
+    }
+
     const participants = await Participant.findAll({ where: { TournamentId: tournament.id }, order: [['ranking', 'DESC']] });
-    if(participants.length < 2) return res.send('Not enough players');
+    
+    if(participants.length < 2) {
+        return res.redirect(`/tournaments/${tournament.id}?error=not_enough_players`);
+    }
+
     const matches = [];
     for(let i=0; i<participants.length-1; i+=2) {
         matches.push({ TournamentId: tournament.id, player1Id: participants[i].UserId, player2Id: participants[i+1].UserId });
     }
     await Match.bulkCreate(matches);
-    res.redirect(`/tournaments/${tournament.id}`);
+    
+    res.redirect(`/tournaments/${tournament.id}?msg=ladder_generated`);
 });
 
 app.get('/tournaments/:id/edit', async (req, res) => {
